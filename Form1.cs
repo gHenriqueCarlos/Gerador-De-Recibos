@@ -101,7 +101,14 @@ namespace Recibos
                         documentp.PrintOut(false, null, printRange);
                         documentp.Close(false, false, false);
 
-                        MessageBox.Show("Imprimindo o Recibo no nome de " + Nome + " \nAguarde...", "Enviando documento...");
+                        //MessageBox.Show("Imprimindo o Recibo no nome de " + Nome + " \nAguarde...", "Enviando documento...");
+                        int count = 0;
+                        while (count < 100)
+                        {
+
+                            MostrarPainelProgresso(count);
+                            count++;
+                        }
                     }
                 }
             }
@@ -142,6 +149,22 @@ namespace Recibos
             textBox4.Text = "RURAL PLAN PLANEJAMENTO E CONSULTORIA";
 
             SetarVisualizacao();
+        }
+        public void MostrarPainelProgresso(int valorbarra)
+        {
+            if (!panel3.Enabled)
+            {
+                panel3.Enabled = true;
+                panel3.Visible = true;
+            }
+
+            progressBar1.Value = valorbarra;
+            label7.Text = valorbarra.ToString();
+            if(valorbarra >= 100)
+            {
+                panel3.Enabled = false;
+                panel3.Visible = false;
+            }
         }
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
@@ -220,6 +243,7 @@ namespace Recibos
             SetarVisualizacao();
 
             panel3.Enabled = false;
+            panel3.Visible = false;
             //Form1.FormBorderStyle = FormBorderStyle.FixedSingle;
         }
 
