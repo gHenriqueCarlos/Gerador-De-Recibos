@@ -1,3 +1,4 @@
 # Recibos
 
-![image](https://github.com/gHenriqueCarlos/Gerador-De-Recibos/assets/45677964/fedb7216-5809-4928-bed3-3c0cf03bb212)
+![image](https://github.com/gHenriqueCarlos/Gerador-De-Recibos/assets/45677964/9f27c1d5-3c24-4b18-9668-e6e28a1713a3)
+
