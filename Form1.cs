@@ -30,11 +30,13 @@ namespace Recibos
     {
         string Nome = string.Empty, Valor = string.Empty, Servico = string.Empty, Data = string.Empty, Assinatura = string.Empty;
         string VisualizacaoText = string.Empty;
+
+        string ReciboCaminhoFinal = string.Empty;
         public Form1()
         {
             InitializeComponent();
         }
-        private bool SalvarRecibo(string nome, string valor, string servico, string data, string assinatura, string caminho)
+        private bool SalvarRecibo(string nome, string valor, string servico, string data, string assinatura, string caminho, bool imprimir)
         {
             if (string.IsNullOrEmpty(nome))
                 return false;
@@ -57,14 +59,34 @@ namespace Recibos
 
                 using (DocX document = DocX.Load(di.FullName))
                 {
+                    ReciboCaminhoFinal = String.Format(caminho + "\\RECIBO_{0}.docx", Nome);
                     document.ReplaceText(new StringReplaceTextOptions() { SearchValue = "#NOME_DO_CLIENTE", NewValue = nome });
                     document.ReplaceText(new StringReplaceTextOptions() { SearchValue = "#VALOR ", NewValue = valor });
                     document.ReplaceText(new StringReplaceTextOptions() { SearchValue = "#VALOR_POR_EXTENSO", NewValue = toExtenso(decimal.Parse(valor, CultureInfo.InvariantCulture)) });
                     document.ReplaceText(new StringReplaceTextOptions() { SearchValue = "#SERVICE ", NewValue = servico });
                     document.ReplaceText(new StringReplaceTextOptions() { SearchValue = "#DATA_DOC   ", NewValue = data });
                     document.ReplaceText(new StringReplaceTextOptions() { SearchValue = "#ASSINATURA ", NewValue = assinatura });
-                    document.SaveAs(String.Format(caminho + "\\RECIBO_{0}.docx", Nome));
+                    document.SaveAs(ReciboCaminhoFinal);
+                    if (imprimir)
+                    {
+                        using (var impressora = new PrintDialog())
+                        {
+                            //DocumentModel document = DocumentModel.Load(ReciboCaminhoFinal);
 
+                            //printDoc.DocumentName = "Recibo";
+                            //printDoc.
+                            var dd = document;
+                            impressora.AllowSomePages = true;
+                            impressora.ShowHelp = true;
+                            impressora.Document = dd;
+                            DialogResult result = impressora.ShowDialog();
+
+                            if (result == DialogResult.OK)
+                            {
+                                printDoc.Print();
+                            }
+                        }
+                    }
                 }
             }
             catch (Exception)
@@ -83,7 +105,10 @@ namespace Recibos
                 valor_extenso = "Zero Reais";
             else valor_extenso = toExtenso(decimal.Parse(Valor, CultureInfo.InvariantCulture));
 
-            string formated_text = string.Format(VisualizacaoText, textBox1.Text, Valor, valor_extenso, textBox3.Text, dateTimePicker1.Text, textBox4.Text);
+            if (string.IsNullOrEmpty(Assinatura))
+                Assinatura = "RURAL PLAN PLANEJAMENTO E CONSULTORIA";
+
+            string formated_text = string.Format(VisualizacaoText, Nome, Valor, valor_extenso, Servico, dateTimePicker1.Text, Assinatura);
             richTextBox1.Text = formated_text;
         }
         public void LimparCampos()
@@ -157,17 +182,19 @@ namespace Recibos
 
                 if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
                 {
-                    SalvarRecibo(Nome, Valor, Servico, Data, Assinatura, fbd.SelectedPath);
+                    SalvarRecibo(Nome, Valor, Servico, Data, Assinatura, fbd.SelectedPath, false);
                     System.Windows.Forms.MessageBox.Show("O Recibo RECIBO_" + Nome + " foi salvo em: " + fbd.SelectedPath, "Message");
 
                     LimparCampos();
                 }
             }
         }
-
-       
-
-
+        private void button1_Click(object sender, EventArgs e)
+        {
+            
+            SalvarRecibo(Nome, Valor, Servico, Data, Assinatura, "", true);
+            //LimparCampos();
+        }
         private void Form1_Load(object sender, EventArgs e)
         {
             VisualizacaoText = richTextBox1.Text;
@@ -180,7 +207,7 @@ namespace Recibos
         //Controles não usados
         private void label2_Click(object sender, EventArgs e)
         {
-
+            
         }
 
         private void label3_Click(object sender, EventArgs e)
