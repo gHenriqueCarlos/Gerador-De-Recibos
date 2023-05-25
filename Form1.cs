@@ -23,7 +23,7 @@ using static Recibos.ConverterNumeros;
 using System.Globalization;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using System.Text.RegularExpressions;
-
+using Microsoft.Office;
 namespace Recibos
 {
     public partial class Form1 : Form
@@ -69,30 +69,48 @@ namespace Recibos
                     document.SaveAs(ReciboCaminhoFinal);
                     if (imprimir)
                     {
-                        using (var impressora = new PrintDialog())
-                        {
-                            //DocumentModel document = DocumentModel.Load(ReciboCaminhoFinal);
+                        //using (var impressora = new PrintDialog())
+                        //{
+                        //    DocumentModel document2 = DocumentModel.Load(ReciboCaminhoFinal);
+                        //    document2.print
+                        //    //printDoc.DocumentName = "Recibo";
+                        //    //printDoc.
+                        //    //var dd = document;
+                        //    impressora.AllowSomePages = true;
+                        //    impressora.ShowHelp = true;
+                        //    //impressora.Document = dd;
+                        //    DialogResult result = impressora.ShowDialog();
 
-                            //printDoc.DocumentName = "Recibo";
-                            //printDoc.
-                            var dd = document;
-                            impressora.AllowSomePages = true;
-                            impressora.ShowHelp = true;
-                            impressora.Document = dd;
-                            DialogResult result = impressora.ShowDialog();
+                        //    if (result == DialogResult.OK)
+                        //    {
+                        //        //printDoc.Print();
+                        //    }
+                        //}
 
-                            if (result == DialogResult.OK)
-                            {
-                                printDoc.Print();
-                            }
-                        }
+                        Microsoft.Office.Interop.Word.Application ap = new Microsoft.Office.Interop.Word.Application();
+                        Microsoft.Office.Interop.Word.Document documentp = ap.Documents.Open(ReciboCaminhoFinal);
+
+                        documentp.PageSetup.TopMargin = 50;
+                        documentp.PageSetup.RightMargin = 50;
+                        documentp.PageSetup.BottomMargin = 50;
+                        documentp.PageSetup.LeftMargin = 50;
+                        documentp.PageSetup.PaperSize = Microsoft.Office.Interop.Word.WdPaperSize.wdPaperA4;
+
+                        Microsoft.Office.Interop.Word.WdPrintOutRange printRange = Microsoft.Office.Interop.Word.WdPrintOutRange.wdPrintCurrentPage;
+
+                        documentp.PrintOut(false, null, printRange);
+                        documentp.Close(false, false, false);
+
+                        MessageBox.Show("Imprimindo o Recibo no nome de " + Nome + " \nAguarde...", "Enviando documento...");
                     }
                 }
             }
             catch (Exception)
             {
-                System.Windows.Forms.MessageBox.Show("Não foi possível emitir o Recibo. ", "Erro ao emitir Recibo");
-                throw;
+                MessageBox.Show("Não foi possível emitir o Recibo. ", "Erro ao emitir Recibo");
+                //throw;
+
+                return false;
             }
             
             return true;
@@ -201,6 +219,7 @@ namespace Recibos
             richTextBox1.ReadOnly = true;
             SetarVisualizacao();
 
+            panel3.Enabled = false;
             //Form1.FormBorderStyle = FormBorderStyle.FixedSingle;
         }
 
