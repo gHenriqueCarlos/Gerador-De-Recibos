@@ -24,6 +24,9 @@ using System.Globalization;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using System.Text.RegularExpressions;
 using Microsoft.Office;
+using System.Threading;
+using System.Security.Cryptography;
+
 namespace Recibos
 {
     public partial class Form1 : Form
@@ -69,24 +72,6 @@ namespace Recibos
                     document.SaveAs(ReciboCaminhoFinal);
                     if (imprimir)
                     {
-                        //using (var impressora = new PrintDialog())
-                        //{
-                        //    DocumentModel document2 = DocumentModel.Load(ReciboCaminhoFinal);
-                        //    document2.print
-                        //    //printDoc.DocumentName = "Recibo";
-                        //    //printDoc.
-                        //    //var dd = document;
-                        //    impressora.AllowSomePages = true;
-                        //    impressora.ShowHelp = true;
-                        //    //impressora.Document = dd;
-                        //    DialogResult result = impressora.ShowDialog();
-
-                        //    if (result == DialogResult.OK)
-                        //    {
-                        //        //printDoc.Print();
-                        //    }
-                        //}
-
                         Microsoft.Office.Interop.Word.Application ap = new Microsoft.Office.Interop.Word.Application();
                         Microsoft.Office.Interop.Word.Document documentp = ap.Documents.Open(ReciboCaminhoFinal);
 
@@ -101,14 +86,18 @@ namespace Recibos
                         documentp.PrintOut(false, null, printRange);
                         documentp.Close(false, false, false);
 
-                        //MessageBox.Show("Imprimindo o Recibo no nome de " + Nome + " \nAguarde...", "Enviando documento...");
                         int count = 0;
                         while (count < 100)
                         {
-
+                            
                             MostrarPainelProgresso(count);
                             count++;
+
+                            Thread.Sleep(50);
                         }
+
+                        FileInfo arquivo = new FileInfo(ReciboCaminhoFinal);
+                        arquivo.Delete();
                     }
                 }
             }
@@ -160,7 +149,7 @@ namespace Recibos
 
             progressBar1.Value = valorbarra;
             label7.Text = valorbarra.ToString();
-            if(valorbarra >= 100)
+            if(valorbarra >= 99)
             {
                 panel3.Enabled = false;
                 panel3.Visible = false;
@@ -223,8 +212,8 @@ namespace Recibos
 
                 if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
                 {
-                    SalvarRecibo(Nome, Valor, Servico, Data, Assinatura, fbd.SelectedPath, false);
-                    System.Windows.Forms.MessageBox.Show("O Recibo RECIBO_" + Nome + " foi salvo em: " + fbd.SelectedPath, "Message");
+                    if(SalvarRecibo(Nome, Valor, Servico, Data, Assinatura, fbd.SelectedPath, false))
+                        MessageBox.Show("O Recibo RECIBO_" + Nome + " foi salvo em: " + fbd.SelectedPath, "Message");
 
                     LimparCampos();
                 }
@@ -232,9 +221,14 @@ namespace Recibos
         }
         private void button1_Click(object sender, EventArgs e)
         {
-            
+            string nomeImpressoraPadrao = (new PrinterSettings()).PrinterName;
+
+            if (string.IsNullOrEmpty(nomeImpressoraPadrao) || nomeImpressoraPadrao == "Microsoft Print to PDF")
+            {
+                MessageBox.Show("Não foi possível imprimir o Recibo.\nO sistema não encontrou nenhuma impressora padrão.", "Nenhuma impressora");
+                return;
+            }
             SalvarRecibo(Nome, Valor, Servico, Data, Assinatura, "", true);
-            //LimparCampos();
         }
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -244,7 +238,13 @@ namespace Recibos
 
             panel3.Enabled = false;
             panel3.Visible = false;
-            //Form1.FormBorderStyle = FormBorderStyle.FixedSingle;
+
+            string nomeImpressoraPadrao = (new PrinterSettings()).PrinterName;
+
+            if (nomeImpressoraPadrao == "Microsoft Print to PDF")
+                nomeImpressoraPadrao = "Nenhuma impressora encontrada.";
+
+            label7.Text = nomeImpressoraPadrao;
         }
 
         //Controles não usados
